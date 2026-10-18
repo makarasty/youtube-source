@@ -63,8 +63,8 @@ public abstract class ThumbnailNonMusicClient extends NonMusicClient {
     @Nullable
     protected AudioTrack extractAudioTrack(@NotNull JsonBrowser json,
                                            @NotNull YoutubeAudioSourceManager source) {
-        // Ignore if it's not a track or if it's a livestream
-        if (json.isNull() || json.get("lengthText").isNull() || !json.get("unplayableText").isNull()) return null;
+        // Ignore if it's not a track, if it's a livestream or if it requires purchase/rental
+        if (json.isNull() || json.get("lengthText").isNull() || !json.get("unplayableText").isNull() || isPurchaseRequired(json)) return null;
 
         String videoId = json.get("videoId").text();
         JsonBrowser titleJson = json.get("title");

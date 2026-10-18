@@ -383,14 +383,47 @@ public abstract class NonMusicClient implements Client {
         }
     }
 
+    /**
+     * Determines whether the given video item requires purchase or rental to play,
+     * such as movies and shows from YouTube Movies &amp; TV. These items cannot be
+     * played by this source, so they are excluded from search results.
+     *
+     * @param json The renderer JSON of the video item.
+     * @return {@code true} if the item requires purchase or rental to play.
+     */
+    protected static boolean isPurchaseRequired(@NotNull JsonBrowser json) {
+        // Purchase/rental offer buttons, e.g. on movieRenderer search results.
+        if (!json.get("offerButtons").isNull()) {
+            return true;
+        }
+
+        for (JsonBrowser badge : json.get("badges").values()) {
+            String style = DataFormatTools.defaultOnNull(
+                badge.get("metadataBadgeRenderer").get("style").text(),
+                DataFormatTools.defaultOnNull(
+                    badge.get("badgeViewModel").get("style").text(),
+                    badge.get("badgeViewModel").get("badgeStyle").text()
+                )
+            );
+
+            // BADGE_STYLE_TYPE_YPC marks purchase/rental required content ('미리보기 중', 'Preview'),
+            // BADGE_STYLE_TYPE_DISABLED marks unavailable store listings ('사용 불가', 'Not available').
+            if ("BADGE_STYLE_TYPE_YPC".equals(style) || "BADGE_STYLE_TYPE_DISABLED".equals(style)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Nullable
     protected AudioTrack extractAudioTrack(@NotNull JsonBrowser json,
                                            @NotNull YoutubeAudioSourceManager source) {
         // this entire function needs redoing. Ideally being able to specify the paths of known JSON layouts
         // rather than doing a load of null checks and substitutions.
 
-        // Ignore if it's not a track or if it's a livestream
-        if (json.isNull() || json.get("lengthText").isNull() || !json.get("unplayableText").isNull()) return null;
+        // Ignore if it's not a track, if it's a livestream or if it requires purchase/rental
+        if (json.isNull() || json.get("lengthText").isNull() || !json.get("unplayableText").isNull() || isPurchaseRequired(json)) return null;
 
         String videoId = json.get("videoId").text();
         JsonBrowser titleJson = !json.get("headline").isNull() ? json.get("headline") : json.get("title");
