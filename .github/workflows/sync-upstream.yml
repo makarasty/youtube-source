@@ -1,0 +1,43 @@
+name: Sync upstream
+# Weekly: merge lavalink-devs/youtube-source main into integration and, if that
+# brought anything new, build and publish a release. A merge conflict fails this
+# run (visible in Actions) and changes nothing. Schedules only run from the
+# default branch, so the repo's default branch must be `integration`.
+on:
+  schedule:
+    - cron: '0 3 * * 2' # Tuesdays 03:00 UTC; the server installs on Wednesdays
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.merge.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration
+          fetch-depth: 0
+
+      - id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch https://github.com/lavalink-devs/youtube-source.git main
+          before=$(git rev-parse HEAD)
+          git merge --no-edit FETCH_HEAD
+          if [ "$(git rev-parse HEAD)" = "$before" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git push origin HEAD:integration
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # A push made with GITHUB_TOKEN does not trigger build.yml, so call it directly.
+  build:
+    needs: sync
+    if: needs.sync.outputs.changed == 'true'
+    uses: ./.github/workflows/build.yml
