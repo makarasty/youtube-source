@@ -5,6 +5,7 @@ on:
     types: [ published ]
 jobs:
   build:
+    if: github.repository == 'lavalink-devs/youtube-source'
     runs-on: ubuntu-latest
     env:
       MAVEN_USERNAME: ${{ vars.MAVEN_USERNAME }}
@@ -49,7 +50,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    if: github.repository == 'lavalink-devs/youtube-source' && github.event_name == 'release'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -2,6 +2,7 @@ name: Autocloser
 on: [issues]
 jobs:
   autoclose:
+    if: github.repository == 'lavalink-devs/youtube-source'
     runs-on: ubuntu-latest
     steps:
     - name: Autoclose issues that did not follow issue template
