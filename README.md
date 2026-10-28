@@ -275,6 +275,10 @@ This service mints a content-bound PoToken for `WEB`, `MWEB`, and `MUSIC`,
 and a visitor data-bound PoToken for `TVHTML5_SIMPLY`. It generates the PoToken (Proof of Origin Token) by solving the `Botguard Attestation` challenge, in several ways.
 Use [webpo-generator](https://github.com/ashton045/webpo-generator), a nodejs REST API to mint the tokens to their respective innertube client's playback.
 
+[bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) (2.0.2 checked) works too: its `POST /get_pot` takes the same `content_binding` body and returns `poToken` and `contentBinding`.
+Put the full endpoint in the url, a url ending in `/get_pot` or `/generate` is used as-is, anything else gets `/generate` appended.
+This lets one bgutil server serve both yt-dlp and Lavalink. bgutil has no auth, so leave `pass` out.
+
 ### Lavaplayer
 ```java
 YoutubeSourceOptions options = new YoutubeSourceOptions()
@@ -289,6 +293,14 @@ plugins:
     remotePot:
       url: "http://localhost:8080"
       pass: "can_you_pass_it" # optional
+```
+
+With bgutil-ytdlp-pot-provider (default port 4416):
+```yaml
+plugins:
+  youtube:
+    remotePot:
+      url: "http://127.0.0.1:4416/get_pot"
 ```
 
 ## Using a remote cipher server

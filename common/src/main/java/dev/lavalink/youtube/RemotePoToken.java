@@ -28,7 +28,7 @@ public final class RemotePoToken {
     /**
      * Creates a remote pot client.
      *
-     * @param remoteUrl base url of the webpo-generator service.
+     * @param remoteUrl base url of the webpo-generator service, or the full .../get_pot url of a bgutil-ytdlp-pot-provider.
      * @param password oprional auth pass.
      */
     public RemotePoToken(@NotNull String remoteUrl, @Nullable String password) {
@@ -107,6 +107,10 @@ public final class RemotePoToken {
     }
 
     private String getRemoteEndpoint(@NotNull String path) {
+        // bgutil-ytdlp-pot-provider takes the same body on /get_pot, so a url that already names an endpoint is used as-is.
+        if (remoteUrl.endsWith("/get_pot") || remoteUrl.endsWith("/" + path)) {
+            return remoteUrl;
+        }
         return remoteUrl.endsWith("/") ? remoteUrl + path : remoteUrl + "/" + path;
     }
 
